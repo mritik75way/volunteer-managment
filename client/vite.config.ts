@@ -23,17 +23,40 @@ export default defineConfig(({ mode }) => {
     build: {
       rollupOptions: {
         output: {
-          manualChunks: {
-            // React core
-            'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-            // Redux
-            'redux-vendor': ['@reduxjs/toolkit', 'react-redux'],
-            // Ant Design UI library
-            'antd-vendor': ['antd', '@ant-design/icons'],
-            // Form libraries
-            'form-vendor': ['react-hook-form', '@hookform/resolvers', 'zod'],
-            // Utilities
-            'utils-vendor': ['axios', 'dayjs', 'clsx', 'tailwind-merge'],
+          manualChunks: (id) => {
+            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
+              return 'react-vendor';
+            }
+            if (id.includes('@reduxjs/toolkit') || id.includes('react-redux')) {
+              return 'redux-vendor';
+            }
+            if (id.includes('antd')) {
+              if (id.includes('@ant-design/icons')) {
+                return 'antd-icons';
+              }
+              if (id.includes('/table') || id.includes('/pagination')) {
+                return 'antd-table';
+              }
+              if (id.includes('/form') || id.includes('/input') || id.includes('/select') || id.includes('/date-picker') || id.includes('/input-number')) {
+                return 'antd-form';
+              }
+              if (id.includes('/modal') || id.includes('/drawer') || id.includes('/popover') || id.includes('/dropdown') || id.includes('/tooltip')) {
+                return 'antd-overlay';
+              }
+              if (id.includes('/skeleton') || id.includes('/result') || id.includes('/message') || id.includes('/notification') || id.includes('/spin') || id.includes('/progress')) {
+                return 'antd-feedback';
+              }
+              if (id.includes('/typography') || id.includes('/card') || id.includes('/space') || id.includes('/divider') || id.includes('/list') || id.includes('/tag') || id.includes('/avatar')) {
+                return 'antd-common';
+              }
+              return 'antd-core';
+            }
+            if (id.includes('react-hook-form') || id.includes('@hookform/resolvers') || id.includes('zod')) {
+              return 'form-vendor';
+            }
+            if (id.includes('axios') || id.includes('dayjs') || id.includes('clsx')) {
+              return 'utils-vendor';
+            }
           },
         },
       },
