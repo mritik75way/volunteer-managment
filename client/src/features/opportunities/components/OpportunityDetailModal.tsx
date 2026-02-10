@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import {
   Modal,
   Typography,
@@ -18,9 +17,9 @@ import {
   BulbOutlined,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
-import api from "../../config/api";
-import { type Opportunity } from "../../features/opportunities/opportunities.slice";
-import { useAppSelector } from "../../store/hooks";
+import { useGetAnnouncementsQuery, useEnrollInShiftMutation } from "../../../shared/api/api.slice";
+import { type Opportunity } from "../opportunities.slice";
+import { useAppSelector } from "../../../app/store/hooks";
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -42,37 +41,13 @@ export const OpportunityDetailModal = ({
   open,
   onClose,
 }: Props) => {
-  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
-  const [annLoading, setAnnLoading] = useState(false);
   const { user } = useAppSelector((state) => state.auth);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    const loadAnnouncements = async () => {
-      if (!open || !opportunity?._id) return;
-
-      setAnnLoading(true);
-      try {
-        const response = await api.get(
-          `/opportunities/${opportunity._id}/announcements`,
-        );
-        if (isMounted) {
-          setAnnouncements(response.data.data.announcements);
-        }
-      } catch {
-        if (isMounted) setAnnouncements([]);
-      } finally {
-        if (isMounted) setAnnLoading(false);
-      }
-    };
-
-    loadAnnouncements();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [open, opportunity?._id]);
+  const { data: annData, isLoading: annLoading } = useGetAnnouncementsQuery(
+    opportunity?._id || '',
+    { skip: !open || !opportunity?._id }
+  );
+  const announcements = (annData?.data?.announcements || []) as Announcement[];
+  const [enrollInShift] = useEnrollInShiftMutation();
 
   if (!opportunity) return null;
 
@@ -87,13 +62,13 @@ export const OpportunityDetailModal = ({
         okText: 'Yes, Join Anyway',
         cancelText: 'Cancel',
         onOk: async () => {
-          await api.post(`/opportunities/${opportunity._id}/enroll/${shiftId}`);
+          await enrollInShift({ opportunityId: opportunity._id, shiftId }).unwrap();
           message.success("Successfully joined the shift!");
           onClose();
         }
       });
     } else {
-      await api.post(`/opportunities/${opportunity._id}/enroll/${shiftId}`);
+      await enrollInShift({ opportunityId: opportunity._id, shiftId }).unwrap();
       message.success("Successfully joined the shift!");
       onClose();
     }

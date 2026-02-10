@@ -1,20 +1,21 @@
 import { Form, Input, Button, Card, Typography } from 'antd';
 import { UserOutlined, MailOutlined, LockOutlined } from '@ant-design/icons';
 import { useNavigate, Link } from 'react-router-dom';
-import api from '../../config/api';
+import { useRegisterMutation } from '../../../shared/api/api.slice';
 
 const { Title, Text } = Typography;
 
 export const RegisterForm = () => {
   const navigate = useNavigate();
+  const [register, { isLoading }] = useRegisterMutation();
 
   const onFinish = async (values: { name: string; email: string; password: string }) => {
     try {
       const payload = { ...values, role: 'volunteer' };
-      await api.post('/auth/register', payload);
+      await register(payload).unwrap();
       navigate('/login');
     } catch (error) {
-      console.error(error);
+      console.error('Registration failed:', error);
     }
   };
 
@@ -56,7 +57,7 @@ export const RegisterForm = () => {
           </Form.Item>
 
           <Form.Item className="mt-6">
-            <Button type="primary" htmlType="submit" block size="large">
+            <Button type="primary" htmlType="submit" block size="large" loading={isLoading}>
               Register
             </Button>
           </Form.Item>

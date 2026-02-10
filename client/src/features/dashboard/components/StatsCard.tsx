@@ -1,23 +1,9 @@
-import { useEffect, useState } from 'react';
 import { ClockCircleOutlined, TrophyOutlined } from '@ant-design/icons';
-import api from '../../config/api';
+import { useGetMyStatsQuery } from '../../../shared/api/api.slice';
 
 export const StatsCards = () => {
-  const [stats, setStats] = useState({ totalHours: 0, eventsAttended: 0 });
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const response = await api.get('/opportunities/my-stats');
-        setStats(response.data.data.stats);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchStats();
-  }, []);
+  const { data, isLoading } = useGetMyStatsQuery(undefined);
+  const stats = data?.data?.stats || { totalHours: 0, eventsAttended: 0 };
 
   const cards = [
     {
@@ -49,7 +35,7 @@ export const StatsCards = () => {
           <div>
             <p className="text-sm font-medium text-slate-500 mb-1">{card.title}</p>
             <div className="text-3xl font-bold text-slate-800">
-              {loading ? "-" : (
+              {isLoading ? "-" : (
                 card.precision ? Number(card.value).toFixed(card.precision) : card.value
               )}
             </div>

@@ -1,7 +1,6 @@
-import { useEffect, useState } from 'react';
 import { Modal, Table, Tag } from 'antd';
 import dayjs from 'dayjs';
-import api from '../../config/api';
+import { useGetVolunteerHistoryQuery } from '../../../shared/api/api.slice';
 
 interface Props {
   volunteerId: string | null;
@@ -11,28 +10,17 @@ interface Props {
 }
 
 export const VolunteerHistoryModal = ({ volunteerId, volunteerName, open, onClose }: Props) => {
-  const [history, setHistory] = useState([]);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    const fetchHistory = async () => {
-      if (!volunteerId || !open) return;
-      setLoading(true);
-      try {
-        const response = await api.get(`/opportunities/volunteer-history/${volunteerId}`);
-        setHistory(response.data.data.history);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchHistory();
-  }, [volunteerId, open]);
+  const { data, isLoading } = useGetVolunteerHistoryQuery(
+    volunteerId || '',
+    { skip: !volunteerId || !open }
+  );
+  const history = data?.data?.history || [];
 
   const columns = [
     {
       title: 'Event',
       dataIndex: ['opportunityId', 'title'],
-      key: 'event',
+      key: 'event'
     },
     {
       title: 'Status',
@@ -63,7 +51,7 @@ export const VolunteerHistoryModal = ({ volunteerId, volunteerName, open, onClos
         dataSource={history} 
         columns={columns} 
         rowKey="_id" 
-        loading={loading} 
+        loading={isLoading} 
       />
     </Modal>
   );

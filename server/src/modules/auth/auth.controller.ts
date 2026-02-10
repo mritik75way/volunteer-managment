@@ -9,12 +9,12 @@ import {
 import { RegisterInput, LoginInput } from "./auth.schema";
 import { Types } from "mongoose";
 import AppError from "../../common/utils/AppError";
-import { User } from "./user.model";
+import { User, IUser } from "./user.model";
 
 const sendTokenResponse = (
   res: Response,
   userId: Types.ObjectId,
-  user: any,
+  user: Partial<IUser>,
   statusCode: number,
   messageText: string,
 ) => {
@@ -45,7 +45,7 @@ export const register = catchAsync(async (req: Request, res: Response) => {
   const newUser = await authService.createUser(registrationData);
 
   const userResponse = newUser.toObject();
-  delete (userResponse as any).password;
+  delete (userResponse as Record<string, unknown>).password;
 
   sendTokenResponse(
     res,
@@ -60,7 +60,7 @@ export const login = catchAsync(
   async (req: Request<{}, {}, LoginInput>, res: Response) => {
     const user = await authService.loginUser(req.body);
     const userResponse = user.toObject();
-    delete (userResponse as any).password;
+    delete (userResponse as Record<string, unknown>).password;
 
     sendTokenResponse(
       res,
@@ -99,7 +99,7 @@ export const refresh = catchAsync(async (req: Request, res: Response) => {
   const accessToken = signAccessToken(user._id as Types.ObjectId);
 
   const userResponse = user.toObject();
-  delete (userResponse as any).password;
+  delete (userResponse as Record<string, unknown>).password;
 
   res.status(200).json({
     status: "success",
@@ -144,7 +144,7 @@ export const exportVolunteers = catchAsync(
 
 export const updateMyProfile = catchAsync(
   async (req: Request, res: Response) => {
-    const updatedUser = await authService.updateProfile(req.user._id, req.body);
+    const updatedUser = await authService.updateProfile(req.user!._id.toString(), req.body);
 
     res.status(200).json({
       status: "success",

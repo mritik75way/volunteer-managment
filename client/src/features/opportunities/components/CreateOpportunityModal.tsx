@@ -3,10 +3,10 @@ import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import dayjs from 'dayjs';
-import api from '../../config/api';
-import { useAppDispatch } from '../../store/hooks';
-import { addOpportunity } from '../../features/opportunities/opportunities.slice';
-import { opportunitySchema, type OpportunityFormValues } from '../../features/opportunities/opportunity.schema';
+import { useCreateOpportunityMutation } from '../../../shared/api/api.slice';
+import { useAppDispatch } from '../../../app/store/hooks';
+import { addOpportunity } from '../opportunities.slice';
+import { opportunitySchema, type OpportunityFormValues } from '../opportunity.schema';
 
 interface Props {
   open: boolean;
@@ -15,6 +15,7 @@ interface Props {
 
 export const CreateOpportunityModal = ({ open, onClose }: Props) => {
   const dispatch = useAppDispatch();
+  const [createOpportunity] = useCreateOpportunityMutation();
 
   const { control, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<OpportunityFormValues>({
     resolver: zodResolver(opportunitySchema),
@@ -32,8 +33,8 @@ export const CreateOpportunityModal = ({ open, onClose }: Props) => {
   });
 
   const onSubmit = async (data: OpportunityFormValues) => {
-    const response = await api.post('/opportunities', data);
-    dispatch(addOpportunity(response.data.data.opportunity));
+    const result = await createOpportunity(data).unwrap();
+    dispatch(addOpportunity(result.data.opportunity));
     reset();
     onClose();
   };

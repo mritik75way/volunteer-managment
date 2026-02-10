@@ -1,6 +1,6 @@
-import { useAppSelector } from '../store/hooks';
-import { StatsCards } from '../components/dashboard/StatsCard';
-import { AdminStats } from '../components/dashboard/AdminStats';
+import { useAppSelector } from '../app/store/hooks';
+import { StatsCards } from '../features/dashboard/components/StatsCard';
+import { AdminStats } from '../features/dashboard/components/AdminStats';
 
 export const DashboardHome = () => {
   const { user } = useAppSelector((state) => state.auth);

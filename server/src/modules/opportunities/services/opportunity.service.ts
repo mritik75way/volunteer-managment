@@ -1,7 +1,24 @@
 
-import { IOpportunity, Opportunity } from "../models/opportunity.model";
+import { IOpportunity, Opportunity, IShift } from "../models/opportunity.model";
 import { CreateOpportunityInput } from "../opportunity.schema";
-import { Types } from "mongoose";
+import { Types, UpdateWriteOpResult } from "mongoose";
+import { IUser } from "../../auth/user.model";
+
+interface OpportunityWithMatch {
+  _id: Types.ObjectId;
+  title: string;
+  description: string;
+  location: string;
+  requirements: string[];
+  requiredSkills: string[];
+  shifts: IShift[];
+  status: "open" | "closed";
+  createdBy: { name: string };
+  createdAt: Date;
+  updatedAt: Date;
+  matchScore?: number;
+  isBestMatch?: boolean;
+}
 
 export const createOpportunity = async (
   data: CreateOpportunityInput,
@@ -13,21 +30,21 @@ export const createOpportunity = async (
   });
 };
 
-export const getAllOpportunities = async (user?: any): Promise<any[]> => {
+export const getAllOpportunities = async (user?: IUser): Promise<OpportunityWithMatch[]> => {
   const opportunities = await Opportunity.find()
     .sort({ createdAt: -1 })
     .populate("createdBy", "name")
     .lean();
 
   const now = new Date();
-  const bulkUpdates: any[] = [];
+  const bulkUpdates: Parameters<typeof Opportunity.bulkWrite>[0] = [];
 
   const updatedOpportunities = opportunities.map(opp => {
     let shouldBeClosed = false;
 
     if (opp.shifts && opp.shifts.length > 0) {
-      const allShiftsFull = opp.shifts.every((shift: any) => shift.filled >= shift.capacity);
-      const allShiftsExpired = opp.shifts.every((shift: any) => new Date(shift.endTime) < now);
+      const allShiftsFull = opp.shifts.every((shift: IShift) => shift.filled >= shift.capacity);
+      const allShiftsExpired = opp.shifts.every((shift: IShift) => new Date(shift.endTime) < now);
       
       shouldBeClosed = allShiftsFull || allShiftsExpired;
     }
@@ -54,7 +71,7 @@ export const getAllOpportunities = async (user?: any): Promise<any[]> => {
   }
 
   if (!user || user.role !== 'volunteer') {
-    return updatedOpportunities;
+    return updatedOpportunities as unknown as OpportunityWithMatch[];
   }
 
   const userSkills = user.skills || [];
@@ -70,5 +87,5 @@ export const getAllOpportunities = async (user?: any): Promise<any[]> => {
         isBestMatch: matchedSkills.length > 0 && matchedSkills.length === required.length
       };
     })
-    .sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0));
+    .sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0)) as unknown as OpportunityWithMatch[];
 };

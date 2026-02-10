@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useState } from "react";
 import {
   Table,
   Avatar,
@@ -10,8 +10,9 @@ import {
 import { UserOutlined, HistoryOutlined, FileExcelOutlined } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import dayjs from "dayjs";
+import { useGetVolunteersQuery } from "../shared/api/api.slice";
 import api from "../config/api";
-import { VolunteerHistoryModal } from "../components/volunteers/VolunteerHistoryModal";
+import { VolunteerHistoryModal } from "../features/volunteers/components/VolunteerHistoryModal";
 
 interface VolunteerData {
   _id: string;
@@ -22,8 +23,8 @@ interface VolunteerData {
 }
 
 export const VolunteersPage = () => {
-  const [volunteers, setVolunteers] = useState<VolunteerData[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data, isLoading, refetch } = useGetVolunteersQuery(undefined);
+  const volunteers = data?.data?.volunteers || [];
 
   const [historyModal, setHistoryModal] = useState<{
     open: boolean;
@@ -35,27 +36,13 @@ export const VolunteersPage = () => {
     name: null,
   });
 
-  const fetchVolunteers = useCallback(async () => {
-    setLoading(true);
-    try {
-      const response = await api.get("/auth/volunteers");
-      setVolunteers(response.data.data.volunteers);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchVolunteers();
-  }, [fetchVolunteers]);
-
   const handleStatusChange = async (volunteerId: string, status: string) => {
     try {
       await api.patch(`/auth/volunteers/${volunteerId}/background-status`, {
         status,
       });
       message.success("Volunteer status updated");
-      fetchVolunteers();
+      refetch();
     } catch (error) {
       console.error(error);
     }
@@ -168,7 +155,7 @@ export const VolunteersPage = () => {
           columns={columns}
           dataSource={volunteers}
           rowKey="_id"
-          loading={loading}
+          loading={isLoading}
           pagination={{ pageSize: 10 }}
         />
       </div>

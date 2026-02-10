@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { Avatar, Tag, Space, Select, Button, message, Divider } from 'antd';
-import { BadgeList } from '../components/profile/BadgeList';
+import { BadgeList } from '../features/profile/components/BadgeList';
 import { UserOutlined, MailOutlined, IdcardOutlined, BulbOutlined, ClockCircleOutlined, SafetyCertificateOutlined, TrophyOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 
 import type { Availability } from '../features/auth/auth.slice';
-import { useAppSelector } from '../store/hooks';
+import { useAppSelector } from '../app/store/hooks';
 import api from '../config/api';
 
 const SKILL_OPTIONS = ['Teaching', 'Coding', 'First Aid', 'Event Planning', 'Cooking', 'Logistics'];

@@ -1,8 +1,8 @@
-import { useEffect, useState, useCallback } from 'react';
-import { Modal, Table, Select, Avatar, Tag, message, Input, Button, Space,Typography } from 'antd';
+import { useState } from 'react';
+import { Modal, Table, Select, Avatar, Tag, message, Input, Button, Space, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { UserOutlined, SendOutlined } from '@ant-design/icons';
-import api from '../../config/api';
+import { useGetOpportunityEnrollmentsQuery, useUpdateEnrollmentStatusMutation, useCreateAnnouncementMutation } from '../../../shared/api/api.slice';
 
 const { TextArea } = Input;
 const {Title} = Typography
@@ -25,33 +25,22 @@ interface Props {
 }
 
 export const ManageEnrollmentsModal = ({ opportunityId, open, onClose }: Props) => {
-  const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
-  const [loading, setLoading] = useState(false);
+  const { data, isLoading, refetch } = useGetOpportunityEnrollmentsQuery(
+    opportunityId || '',
+    { skip: !opportunityId || !open }
+  );
+  const enrollments = data?.data?.enrollments || [];
+  const [updateStatus] = useUpdateEnrollmentStatusMutation();
+  const [createAnnouncement] = useCreateAnnouncementMutation();
+  
   const [announcement, setAnnouncement] = useState('');
   const [sending, setSending] = useState(false);
 
-  const fetchEnrollments = useCallback(async () => {
-    if (!opportunityId) return;
-    setLoading(true);
-    try {
-      const response = await api.get(`/opportunities/${opportunityId}/enrollments`);
-      setEnrollments(response.data.data.enrollments);
-    } finally {
-      setLoading(false);
-    }
-  }, [opportunityId]);
-
-  useEffect(() => {
-    if (open) {
-      fetchEnrollments();
-    }
-  }, [open, fetchEnrollments]);
-
   const handleStatusChange = async (enrollmentId: string, newStatus: string) => {
     try {
-      await api.patch(`/opportunities/enrollments/${enrollmentId}/status`, { status: newStatus });
+      await updateStatus({ opportunityId: opportunityId!, enrollmentId, status: newStatus }).unwrap();
       message.success('Status updated');
-      fetchEnrollments();
+      refetch();
     } catch (error) {
       console.error(error);
     }
@@ -61,7 +50,7 @@ export const ManageEnrollmentsModal = ({ opportunityId, open, onClose }: Props) 
     if (!announcement.trim() || !opportunityId) return;
     setSending(true);
     try {
-      await api.post(`/opportunities/${opportunityId}/announcements`, { message: announcement });
+      await createAnnouncement({ opportunityId, message: announcement }).unwrap();
       message.success('Announcement broadcasted to all volunteers');
       setAnnouncement('');
     } finally {
@@ -134,7 +123,7 @@ export const ManageEnrollmentsModal = ({ opportunityId, open, onClose }: Props) 
         </Space>
       </div>
 
-      <Table dataSource={enrollments} columns={columns} rowKey="_id" loading={loading} pagination={{ pageSize: 5 }} />
+      <Table dataSource={enrollments} columns={columns} rowKey="_id" loading={isLoading} pagination={{ pageSize: 5 }} />
     </Modal>
   );
 };

@@ -1,9 +1,15 @@
 import AppError from "../../../common/utils/AppError";
 import { Enrollment, IEnrollment } from "../models/enrollment.model";
-import { Opportunity } from "../models/opportunity.model";
-
+import { Opportunity, IShift } from "../models/opportunity.model";
+import { Types } from "mongoose";
 
 import { User } from "../../auth/user.model";
+
+interface PopulatedOpportunity {
+  title: string;
+  location: string;
+  shifts: Types.DocumentArray<IShift>;
+}
 
 export const enrollVolunteer = async (
   opportunityId: string,
@@ -63,7 +69,7 @@ export const getUserEnrollments = async (userId: string) => {
     .sort({ createdAt: -1 });
 
   return enrollments.map((enrollment: IEnrollment) => {
-    const opp = enrollment.opportunityId as any;
+    const opp = enrollment.opportunityId as unknown as PopulatedOpportunity;
     const shift = opp?.shifts ? opp.shifts.id(enrollment.shiftId) : null;
 
     return {

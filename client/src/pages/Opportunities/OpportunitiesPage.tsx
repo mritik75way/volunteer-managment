@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { Button, Table, Tag, Card, Typography, Space } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import {
@@ -6,58 +6,40 @@ import {
   EnvironmentOutlined,
   ClockCircleOutlined,
 } from "@ant-design/icons";
-import { useAppDispatch, useAppSelector } from "../../store/hooks";
-import {
-  setOpportunities,
-  setLoading,
-  type Opportunity,
-} from "../../features/opportunities/opportunities.slice";
-import api from "../../config/api";
-import { CreateOpportunityModal } from "../../components/opportunities/CreateOpportunityModal";
-import { OpportunityDetailModal } from "../../components/opportunities/OpportunityDetailModal";
-import { ManageEnrollmentsModal } from "../../components/opportunities/ManageEnrollmentsModal";
+import { useAppSelector } from "../../app/store/hooks";
+import { type Opportunity } from "../../features/opportunities/opportunities.slice";
+import { useGetOpportunitiesQuery } from "../../shared/api/api.slice";
+import { CreateOpportunityModal } from "../../features/opportunities/components/CreateOpportunityModal";
+import { OpportunityDetailModal } from "../../features/opportunities/components/OpportunityDetailModal";
+import { ManageEnrollmentsModal } from "../../features/opportunities/components/ManageEnrollmentsModal";
 
 const { Title } = Typography;
 
 export const OpportunitiesPage = () => {
-  const dispatch = useAppDispatch();
-  const { list, isLoading } = useAppSelector((state) => state.opportunities);
+  const { data, isLoading } = useGetOpportunitiesQuery(undefined);
+  const list = (data?.data?.opportunities || []) as Opportunity[];
   const { user } = useAppSelector((state) => state.auth);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedOpp, setSelectedOpp] = useState<Opportunity | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [manageId, setManageId] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchOpportunities = async () => {
-      dispatch(setLoading(true));
-      try {
-        const response = await api.get("/opportunities");
-        dispatch(setOpportunities(response.data.data.opportunities));
-      } finally {
-        dispatch(setLoading(false));
-      }
-    };
-
-    fetchOpportunities();
-  }, [dispatch]);
-
   const columns: ColumnsType<Opportunity> = useMemo(() => [
     {
-  title: "Title",
-  dataIndex: "title",
-  key: "title",
-  render: (text, record: Opportunity) => (
-    <Space>
-      <span className="font-semibold text-blue-600">{text}</span>
-      {!!record.matchScore && record.matchScore > 0 && (
-        <Tag color="gold" bordered={false} style={{ fontSize: '10px' }}>
-          {record.isBestMatch ? 'BEST MATCH' : `${record.matchScore} SKILLS MATCH`}
-        </Tag>
-      )}
-    </Space>
-  ),
-},
+      title: "Title",
+      dataIndex: "title",
+      key: "title",
+      render: (text, record: Opportunity) => (
+        <Space>
+          <span className="font-semibold text-blue-600">{text}</span>
+          {!!record.matchScore && record.matchScore > 0 && (
+            <Tag color="gold" bordered={false} style={{ fontSize: '10px' }}>
+              {record.isBestMatch ? 'BEST MATCH' : `${record.matchScore} SKILLS MATCH`}
+            </Tag>
+          )}
+        </Space>
+      ),
+    },
     {
       title: "Location",
       dataIndex: "location",
@@ -94,34 +76,34 @@ export const OpportunitiesPage = () => {
       ),
     },
     {
-  title: "Action",
-  key: "action",
-  render: (_, record) => (
-    <Space>
-      <Button
-        type="link"
-        onClick={() => {
-          setSelectedOpp(record);
-          setIsDetailOpen(true);
-        }}
-        size="small"
-      >
-        View Details
-      </Button>
+      title: "Action",
+      key: "action",
+      render: (_, record) => (
+        <Space>
+          <Button
+            type="link"
+            onClick={() => {
+              setSelectedOpp(record);
+              setIsDetailOpen(true);
+            }}
+            size="small"
+          >
+            View Details
+          </Button>
 
-      {user?.role === "admin" && (
-        <Button
-          type="text"
-          className="text-orange-600 hover:text-orange-700"
-          size="small"
-          onClick={() => setManageId(record._id)}
-        >
-          Manage
-        </Button>
-      )}
-    </Space>
-  ),
-},
+          {user?.role === "admin" && (
+            <Button
+              type="text"
+              className="text-orange-600 hover:text-orange-700"
+              size="small"
+              onClick={() => setManageId(record._id)}
+            >
+              Manage
+            </Button>
+          )}
+        </Space>
+      ),
+    },
   ], [user?.role]);
 
   return (

@@ -2,21 +2,22 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Input, Button, Form, Card, Typography } from 'antd';
 import { Link, useNavigate } from 'react-router-dom';
-import { loginSchema, type LoginFormValues } from '../../features/auth/auth.schema';
-import api from '../../config/api';
-import { useAppDispatch } from '../../store/hooks';
-import { setCredentials } from '../../features/auth/auth.slice';
+import { loginSchema, type LoginFormValues } from '../auth.schema';
+import { useAppDispatch } from '../../../app/store/hooks';
+import { setCredentials } from '../auth.slice';
+import { useLoginMutation } from '../../../shared/api/api.slice';
 
 const { Title, Text } = Typography;
 
 export const LoginForm = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const [login, { isLoading }] = useLoginMutation();
   
   const {
     control,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -26,12 +27,16 @@ export const LoginForm = () => {
   });
 
   const onSubmit = async (data: LoginFormValues) => {
-    const response = await api.post('/auth/login', data);
-    dispatch(setCredentials({
-      user: response.data.data.user,
-      accessToken: response.data.accessToken,
-    }));
-    navigate('/');
+    try {
+      const result = await login(data).unwrap();
+      dispatch(setCredentials({
+        user: result.data.user,
+        accessToken: result.accessToken,
+      }));
+      navigate('/');
+    } catch (error) {
+      console.error('Login failed:', error);
+    }
   };
 
   return (
@@ -70,7 +75,7 @@ export const LoginForm = () => {
             htmlType="submit"
             block
             size="large"
-            loading={isSubmitting}
+            loading={isLoading}
             className="mb-4"
           >
             Sign In

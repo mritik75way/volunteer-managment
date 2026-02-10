@@ -2,32 +2,40 @@ import { ConfigProvider } from 'antd';
 import { useEffect, useState } from 'react';
 import { RouterProvider } from 'react-router-dom';
 import { Spin } from 'antd';
-import { router } from './routes';
-import { useAppDispatch } from './store/hooks';
+import { router } from './app/routes';
+import { useAppDispatch, useAppSelector } from './app/store/hooks';
 import { setCredentials } from './features/auth/auth.slice';
-import api from './config/api';
-import { ErrorBoundary } from './components/common/ErrorBoundary';
+import { apiSlice } from './shared/api/api.slice';
+import { ErrorBoundary } from './shared/components/common/ErrorBoundary';
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
   const dispatch = useAppDispatch();
+  const existingToken = useAppSelector((state) => state.auth.accessToken);
+  const [refreshAuth] = apiSlice.endpoints.refresh.useLazyQuery();
 
   useEffect(() => {
     const initializeAuth = async () => {
       try {
-        const response = await api.get('/auth/refresh');
-      
+        if (existingToken) {
+          setIsLoading(false);
+          return;
+        }
+        
+        const result = await refreshAuth(undefined).unwrap();
         dispatch(setCredentials({
-          user: response.data.data.user,
-          accessToken: response.data.accessToken,
+          user: result.data.user,
+          accessToken: result.accessToken,
         }));
+      } catch (error) {
+        console.log('No valid session', error);
       } finally {
         setIsLoading(false);
       }
     };
 
     initializeAuth();
-  }, [dispatch]);
+  }, [dispatch, existingToken, refreshAuth]);
 
   if (isLoading) {
     return (

@@ -1,7 +1,16 @@
 import { Request, Response, NextFunction } from 'express';
 import { ZodError } from 'zod';
 
-const errorHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
+interface AppErrorType extends Error {
+    statusCode?: number;
+    status?: string;
+    code?: number;
+    path?: string;
+    value?: unknown;
+    errors?: unknown;
+}
+
+const errorHandler = (err: AppErrorType, req: Request, res: Response, next: NextFunction) => {
     let error = { ...err };
     error.message = err.message;
     error.statusCode = err.statusCode || 500;

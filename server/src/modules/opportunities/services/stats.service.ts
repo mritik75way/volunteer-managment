@@ -1,5 +1,12 @@
 import { Enrollment, IEnrollment } from "../models/enrollment.model";
-import { Opportunity } from "../models/opportunity.model";
+import { Opportunity, IShift } from "../models/opportunity.model";
+import { Types } from "mongoose";
+
+interface PopulatedEnrollment extends Omit<IEnrollment, 'opportunityId'> {
+  opportunityId: {
+    shifts: Types.DocumentArray<IShift>;
+  };
+}
 
 
 export const getVolunteerStats = async (userId: string) => {
@@ -13,8 +20,8 @@ export const getVolunteerStats = async (userId: string) => {
 
   let totalHours = 0;
 
-  completedEnrollments.forEach((enrollment: IEnrollment) => {
-    const opp = enrollment.opportunityId as any;
+  completedEnrollments.forEach((enrollment) => {
+    const opp = enrollment.opportunityId as unknown as PopulatedEnrollment['opportunityId'];
     if (opp?.shifts) {
       const shift = opp.shifts.id(enrollment.shiftId);
       if (shift) {
@@ -51,10 +58,11 @@ export const getAdminStats = async (userId: string) => {
 
   let totalHours = 0;
 
-  completed.forEach((en: any) => {
-    const shifts = en.opportunityId?.shifts;
+  completed.forEach((en) => {
+    const typedEn = en as unknown as PopulatedEnrollment;
+    const shifts = typedEn.opportunityId?.shifts;
     if (shifts) {
-      const shift = shifts.find((s: any) => s._id.toString() === en.shiftId.toString());
+      const shift = shifts.find((s: IShift) => s._id.toString() === typedEn.shiftId.toString());
       if (shift) {
         const start = new Date(shift.startTime).getTime();
         const end = new Date(shift.endTime).getTime();

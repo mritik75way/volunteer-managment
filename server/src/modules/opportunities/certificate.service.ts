@@ -1,7 +1,19 @@
 import PDFDocument from 'pdfkit';
-import AppError from '../../common/utils/AppError';
-import { Enrollment } from './models/enrollment.model';
+import AppError from "../../common/utils/AppError";
+import { Enrollment, IEnrollment } from "./models/enrollment.model";
+import { Opportunity, IShift } from "./models/opportunity.model";
+import { Types } from "mongoose";
 
+
+interface PopulatedVolunteer {
+  name: string;
+}
+
+interface PopulatedOpportunity {
+  title: string;
+  location: string;
+  shifts: Types.DocumentArray<IShift>;
+}
 
 export const generateCertificateStream = async (enrollmentId: string) => {
     const enrollment = await Enrollment.findById(enrollmentId)
@@ -13,8 +25,8 @@ export const generateCertificateStream = async (enrollmentId: string) => {
     }
 
     const doc = new PDFDocument({ layout: 'landscape', size: 'A4' });
-    const volunteerName = (enrollment.volunteerId as any).name;
-    const eventTitle = (enrollment.opportunityId as any).title;
+    const volunteerName = (enrollment.volunteerId as unknown as PopulatedVolunteer).name;
+    const eventTitle = (enrollment.opportunityId as unknown as PopulatedOpportunity).title;
 
     doc.rect(20, 20, doc.page.width - 40, doc.page.height - 40).stroke();
 

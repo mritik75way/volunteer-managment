@@ -1,4 +1,4 @@
-import { type Badge } from '../../features/auth/auth.slice';
+import { type Badge } from '../../auth/auth.slice';
 import { Tooltip } from 'antd';
 
 interface BadgeListProps {

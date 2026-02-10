@@ -1,8 +1,7 @@
-import { useEffect, useState } from "react";
 import { List, Typography, Card, Skeleton, Space } from "antd";
 import { NotificationOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
-import api from "../../config/api";
+import { useGetAnnouncementsQuery } from "../../../shared/api/api.slice";
 
 const { Text } = Typography;
 
@@ -18,24 +17,10 @@ export const AnnouncementList = ({
 }: {
   opportunityId: string;
 }) => {
-  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data, isLoading } = useGetAnnouncementsQuery(opportunityId);
+  const announcements = (data?.data?.announcements || []) as Announcement[];
 
-  useEffect(() => {
-    const fetchAnnouncements = async () => {
-      try {
-        const response = await api.get(
-          `/opportunities/${opportunityId}/announcements`,
-        );
-        setAnnouncements(response.data.data.announcements);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchAnnouncements();
-  }, [opportunityId]);
-
-  if (loading) return <Skeleton active />;
+  if (isLoading) return <Skeleton active />;
   if (announcements.length === 0) return null;
 
   return (

@@ -1,18 +1,18 @@
 import { createBrowserRouter } from "react-router-dom";
 import { lazy, Suspense } from "react";
 
-import { DashboardLayout } from "../components/layout/DashboardLayout";
-import { ProtectedRoute } from "../components/layout/ProtectedRoute";
-import { ErrorPage } from "../components/ui/ErrorPage";
-import { LoadingFallback } from "../components/ui/LoadingFallback";
+import { DashboardLayout } from "../../shared/components/layout/DashboardLayout";
+import { ProtectedRoute } from "../../shared/components/layout/ProtectedRoute";
+import { ErrorPage } from "../../shared/components/ui/ErrorPage";
+import { LoadingFallback } from "../../shared/components/ui/LoadingFallback";
 
-const LoginForm = lazy(() => import("../components/auth/LoginForm").then(m => ({ default: m.LoginForm })));
-const RegisterForm = lazy(() => import("../components/auth/RegisterForm").then(m => ({ default: m.RegisterForm })));
-const OpportunitiesPage = lazy(() => import("../pages/Opportunities/OpportunitiesPage").then(m => ({ default: m.OpportunitiesPage })));
-const MySchedule = lazy(() => import("../pages/Opportunities/MySchedule").then(m => ({ default: m.MySchedule })));
-const DashboardHome = lazy(() => import("../pages/DashboardHome").then(m => ({ default: m.DashboardHome })));
-const VolunteersPage = lazy(() => import("../pages/VolunteersPage").then(m => ({ default: m.VolunteersPage })));
-const ProfilePage = lazy(() => import("../pages/ProfilePage").then(m => ({ default: m.ProfilePage })));
+const LoginForm = lazy(() => import("../../features/auth/components/LoginForm").then(m => ({ default: m.LoginForm })));
+const RegisterForm = lazy(() => import("../../features/auth/components/RegisterForm").then(m => ({ default: m.RegisterForm })));
+const OpportunitiesPage = lazy(() => import("../../pages/Opportunities/OpportunitiesPage").then(m => ({ default: m.OpportunitiesPage })));
+const MySchedule = lazy(() => import("../../pages/Opportunities/MySchedule").then(m => ({ default: m.MySchedule })));
+const DashboardHome = lazy(() => import("../../pages/DashboardHome").then(m => ({ default: m.DashboardHome })));
+const VolunteersPage = lazy(() => import("../../pages/VolunteersPage").then(m => ({ default: m.VolunteersPage })));
+const ProfilePage = lazy(() => import("../../pages/ProfilePage").then(m => ({ default: m.ProfilePage })));
 
 export const router = createBrowserRouter([
   {

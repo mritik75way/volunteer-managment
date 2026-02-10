@@ -5,9 +5,9 @@ import {
 } from "@ant-design/icons";
 import { Dropdown, Avatar } from "antd";
 import { useNavigate } from "react-router-dom";
-import { useAppDispatch, useAppSelector } from "../../store/hooks";
-import { logout } from "../../features/auth/auth.slice";
-import api from "../../config/api";
+import { useAppDispatch, useAppSelector } from "../../../app/store/hooks";
+import { logout } from "../../../features/auth/auth.slice";
+import { useLogoutMutation } from "../../api/api.slice";
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -17,10 +17,11 @@ export const Header = ({ onMenuClick }: HeaderProps) => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
+  const [logoutMutation] = useLogoutMutation();
 
   const handleLogout = async () => {
     try {
-      await api.post("/auth/logout");
+      await logoutMutation({}).unwrap();
     } finally {
       dispatch(logout());
       navigate("/login");

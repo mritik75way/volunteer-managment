@@ -5,7 +5,7 @@ import {
   FileProtectOutlined,
   TeamOutlined,
 } from "@ant-design/icons";
-import { useAppSelector } from "../../store/hooks";
+import { useAppSelector } from "../../../app/store/hooks";
 import clsx from "clsx";
 
 export const Sidebar = ({ isOpen }: { isOpen: boolean }) => {

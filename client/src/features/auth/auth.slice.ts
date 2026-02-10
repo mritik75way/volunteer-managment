@@ -33,10 +33,37 @@ interface AuthState {
   isLoading: boolean;
 }
 
+const saveTokenToStorage = (token: string) => {
+  localStorage.setItem('accessToken', token);
+};
+
+const getTokenFromStorage = (): string | null => {
+  return localStorage.getItem('accessToken');
+};
+
+const saveUserToStorage = (user: User) => {
+  localStorage.setItem('user', JSON.stringify(user));
+};
+
+const getUserFromStorage = (): User | null => {
+  const userStr = localStorage.getItem('user');
+  if (!userStr) return null;
+  try {
+    return JSON.parse(userStr);
+  } catch {
+    return null;
+  }
+};
+
+const removeTokenFromStorage = () => {
+  localStorage.removeItem('accessToken');
+  localStorage.removeItem('user');
+};
+
 const initialState: AuthState = {
-  user: null,
-  accessToken: null,
-  isAuthenticated: false,
+  user: getUserFromStorage(),
+  accessToken: getTokenFromStorage(),
+  isAuthenticated: !!getTokenFromStorage(),
   isLoading: true
 };
 
@@ -51,14 +78,20 @@ const authSlice = createSlice({
       state.user = action.payload.user;
       state.accessToken = action.payload.accessToken;
       state.isAuthenticated = true;
+      saveTokenToStorage(action.payload.accessToken);
+      saveUserToStorage(action.payload.user);
     },
     logout: (state) => {
       state.user = null;
       state.accessToken = null;
       state.isAuthenticated = false;
+      removeTokenFromStorage();
+    },
+    setLoading: (state, action: PayloadAction<boolean>) => {
+      state.isLoading = action.payload;
     },
   },
 });
 
-export const { setCredentials, logout } = authSlice.actions;
+export const { setCredentials, logout, setLoading } = authSlice.actions;
 export default authSlice.reducer;

@@ -1,6 +1,6 @@
 import axios from "axios";
 import { message } from "antd";
-import { store } from "../store/store";
+import { store } from "../app/store/store";
 import { setCredentials, logout } from "../features/auth/auth.slice";
 
 const api = axios.create({
@@ -41,12 +41,15 @@ api.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const refreshResponse = await axios.get(`${import.meta.env.VITE_API_URL || '/api'}/auth/refresh`);
+        const refreshResponse = await axios.get(`${import.meta.env.VITE_API_URL || '/api'}/auth/refresh`, {
+          withCredentials: true
+        });
         const newAccessToken = refreshResponse.data.accessToken;
+        const userData = refreshResponse.data.data.user;
 
         store.dispatch(setCredentials({ 
             accessToken: newAccessToken, 
-            user: store.getState().auth.user! 
+            user: userData
         }));
 
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;

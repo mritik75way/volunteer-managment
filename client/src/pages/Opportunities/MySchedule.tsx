@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
 import { Table, Tag, Card, Typography, Space, Button } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { ClockCircleOutlined, FilePdfOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
+import { useGetMyEnrollmentsQuery } from "../../shared/api/api.slice";
 import api from "../../config/api";
 
 const { Title, Text } = Typography;
@@ -25,21 +25,8 @@ interface Enrollment {
 }
 
 export const MySchedule = () => {
-  const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchEnrollments = async () => {
-      try {
-        const response = await api.get("/opportunities/my-enrollments");
-        setEnrollments(response.data.data.enrollments);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchEnrollments();
-  }, []);
+  const { data, isLoading } = useGetMyEnrollmentsQuery(undefined);
+  const enrollments = data?.data?.enrollments || [];
 
   const columns: ColumnsType<Enrollment> = [
     {
@@ -130,7 +117,7 @@ export const MySchedule = () => {
           dataSource={enrollments}
           columns={columns}
           rowKey="_id"
-          loading={loading}
+          loading={isLoading}
           pagination={{ pageSize: 5 }}
         />
       </Card>

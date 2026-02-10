@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { User } from '../../modules/auth/user.model';
+import { User, IUser } from '../../modules/auth/user.model';
 import AppError from '../utils/AppError';
 import catchAsync from '../utils/catchAsync';
 
@@ -13,7 +13,7 @@ interface TokenPayload {
 declare global {
     namespace Express {
         interface Request {
-            user?: any;
+            user?: IUser;
         }
     }
 }
@@ -42,7 +42,7 @@ export const protect = catchAsync(async (req: Request, res: Response, next: Next
 
 export const restrictTo = (...roles: string[]) => {
     return (req: Request, res: Response, next: NextFunction) => {
-        if (!roles.includes(req.user.role)) {
+        if (!roles.includes(req.user!.role)) {
             return next(new AppError('You do not have permission to perform this action', 403));
         }
         next();

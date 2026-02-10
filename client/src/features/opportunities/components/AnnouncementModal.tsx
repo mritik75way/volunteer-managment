@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Modal, Input, message } from 'antd';
-import api from '../../config/api';
+import api from '../../../config/api';
 
 const { TextArea } = Input;
 
